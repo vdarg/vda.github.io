@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+<link rel="icon" href="https:/vda.neocities.org/images/favicon.png" type="image/x-icon">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Query on Bitview</title>
+    <style>
+        body {
+            font-family: Verdana, sans-serif;
+            padding: 20px;
+            background-color: #f3f3f3;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            justify-content: center;
+        }
+        h1 {
+            text-align: center;
+        }
+        .header-image {
+            max-width: 100%;
+            margin-bottom: 20px;
+        }
+        .form-container {
+            width: 100%;
+            max-width: 500px;
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 5px;
+            background-color: #fff;
+            transition: all 0.5s ease;
+        }
+        .form-container label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        .form-container input[type="text"] {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        .form-container .search-buttons {
+            display: flex;
+            justify-content: space-between;
+        }
+        .form-container button {
+            flex: 1;
+            margin-right: 5px;
+            padding: 10px 0;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .form-container button.search-button {
+            background-color: #f39c12; /* Naranja */
+            color: #fff;
+        }
+        .form-container button.back-button {
+            background-color: #3498db; /* Azul */
+            color: #fff;
+        }
+        .form-container button:hover {
+            opacity: 0.8;
+        }
+        .result-container {
+            display: none;
+            width: 100%;
+            max-width: 500px;
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 5px;
+            background-color: #fff;
+        }
+        .result-container .loading-animation {
+            text-align: center;
+            margin-top: 20px;
+            display: none;
+        }
+        .result-container .loading-animation img {
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        .result-container .video-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .result-container .video-header img {
+            width: 150px; /* Ancho del rectángulo */
+            height: auto;
+            border: 2px solid #000;
+            margin-right: 20px;
+        }
+        .result-container .video-header h2 {
+            margin: 0;
+        }
+        .result-container .video {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .result-container .video .field {
+            margin-bottom: 10px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .result-container .video .field strong {
+            display: inline-block;
+            width: 140px;
+            text-align: left;
+            margin-right: 10px;
+        }
+        .result-container .video .divider {
+            width: 100%;
+            border-bottom: 1px dashed #ccc;
+            margin: 10px 0;
+        }
+        .bottom-button {
+            margin-top: 20px;
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+        }
+        .bottom-button button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            background-color: #3498db;
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .bottom-button button:hover {
+            background-color: #2980b9;
+        }
+        .credit {
+            margin-top: 20px;
+            font-family: 'MS Gothic', sans-serif;
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .error-message {
+            color: red;
+            margin-top: 10px;
+        }
+
+        .ms-gothic-text {
+            margin-top: 10px;
+            font-family: 'MS Gothic', sans-serif;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .thumbnail-container {
+            width: 150px; /* Ancho del rectángulo */
+            height: 100px; /* Alto del rectángulo */
+            border: 2px solid #000;
+            overflow: hidden; /* Para recortar cualquier contenido que exceda las dimensiones del contenedor */
+        }
+
+        .thumbnail-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Para ajustar la imagen dentro del contenedor sin deformarla */
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .form-container, .result-container, .bottom-button {
+                max-width: 100%;
+            }
+            .result-container .video .field strong {
+                width: 120px;
+            }
+            .result-container .video-header img {
+                width: 120px; /* Ancho del rectángulo en pantalla pequeña */
+            }
+        }
+    </style>
+</head>
+<body>
+    <img class="header-image" src="https://dev.bitview.net/bitview.png" alt="Header Image">
+
+    <h1>Video Query on Bitview</h1>
+
+    <div class="form-container" id="formContainer">
+        <form id="videoForm" onsubmit="getVideoData(event)">
+            <label for="videoUrl">Enter Video URL:</label>
+            <input type="text" id="videoUrl" required>
+            <div class="search-buttons">
+                <button type="submit" class="search-button">Search</button>
+                <button type="button" class="back-button" onclick="window.location.href = 'index.html';">Back</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="result-container" id="resultContainer">
+        <div class="loading-animation" id="loadingAnimation">
+            <img src="https://cdnjs.cloudflare.com/ajax/libs/galleriffic/2.0.1/css/loader.gif" alt="Loading...">
+        </div>
+        <div class="video-header" id="videoHeader">
+            <div class="thumbnail-container">
+                <img id="videoThumbnail" src="" alt="Video Thumbnail">
+            </div>
+            <h2 id="videoTitle"></h2>
+        </div>
+        <div class="video" id="videoData"></div>
+        <div class="bottom-button">
+            <button onclick="resetPage()">Back</button>
+            <div class="ms-gothic-text">
+                The data indicated as "Unknown" is because the Official BitView API does not provide it
+            </div>
+        </div>
+    </div>
+
+    <div class="credit">
+        Made by <a href="https://bitview.net/user/vda" target="_blank">vda</a> - Buenos Aires, Argentina - 2024 - Not affiliated with BitView/Bittoco
+    </div>
+
+    <script>
+        function getVideoData(event) {
+            event.preventDefault();
+            const videoUrl = document.getElementById('videoUrl').value;
+            const videoId = extractVideoId(videoUrl);
+            const apiUrl = `https://www.bitview.net/api.php?ty=video&ta=${videoId}&api_key=I1aW2WyNsErdELqFAugoTTTCchcqp618`;
+
+            document.getElementById('loadingAnimation').style.display = 'block';
+
+            // Disable input and button
+            document.getElementById('videoUrl').disabled = true;
+            document.querySelector('.search-button').disabled = true;
+            document.querySelector('.back-button').disabled = true;
+
+            fetch(apiUrl)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (!data.title) {
+                        throw new Error('Video not found');
+                    }
+                    displayVideoData(data);
+                    document.getElementById('loadingAnimation').style.display = 'none';
+                })
+                .catch(error => {
+                    console.error('Error retrieving data:', error);
+                    const resultContainer = document.getElementById('resultContainer');
+                    resultContainer.innerHTML = `<p class="error-message">${error.message}. Please reload the page to try again.</p>`;
+                    resultContainer.style.display = 'block';
+                    document.getElementById('loadingAnimation').style.display = 'none';
+                });
+        }
+
+        function displayVideoData(data) {
+            const formContainer = document.getElementById('formContainer');
+            const resultContainer = document.getElementById('resultContainer');
+            const videoHeaderContainer = document.getElementById('videoHeader');
+            const videoDataContainer = document.getElementById('videoData');
+            const videoThumbnail = document.getElementById('videoThumbnail');
+            const videoTitle = document.getElementById('videoTitle');
+            const title = data.title || 'Unknown';
+            const description = data.description || 'Unknown';
+            const views = data.views || 'Unknown';
+            const likes = data.likes || 'Unknown';
+            const dislikes = data.dislikes || 'Unknown';
+            const comments = data.comments || 'Unknown';
+            const tags = Array.isArray(data.tags) ? data.tags.join(', ') : 'No tags available'; // Check if tags is an array
+            const uploaded = data.uploaded || 'Unknown';
+            const duration = formatDuration(data.duration);
+
+            // Mostrar texto alternativo si la imagen no carga
+            videoThumbnail.onerror = function() {
+                videoThumbnail.src = 'https://via.placeholder.com/150x100?text=Thumbnail+not+available';
+                videoThumbnail.alt = 'Thumbnail not available';
+            };
+
+            videoThumbnail.src = data.thumbnail_url || 'https://via.placeholder.com/150x100?text=Thumbnail+not+available';
+            videoThumbnail.alt = 'Thumbnail not available';
+            videoTitle.textContent = title;
+
+            const videoHTML = `
+                <div class="field"><strong>Title:</strong> ${title}</div>
+                <div class="divider"></div>
+                <div class="field"><strong>Description:</strong> ${description}</div>
+                <div class="divider"></div>
+                <div class="field"><strong>Views:</strong> ${views}</div>
+                <div class="divider"></div>
+                <div class="field"><strong>Likes:</strong> ${likes}</div>
+                <div class="divider"></div>
+                <div class="field"><strong>Dislikes:</strong> ${dislikes}</div>
+                <div class="divider"></div>
+                <div class="field"><strong>Comments:</strong> ${comments}</div>
+                <div class="divider"></div>
+                <div class="field"><strong>Tags:</strong> ${tags}</div>
+                <div class="divider"></div>
+                <div class="field"><strong>Uploaded:</strong> ${uploaded}</div>
+                <div class="divider"></div>
+                <div class="field"><strong>Duration:</strong> ${duration}</div>
+            `;
+
+            videoDataContainer.innerHTML = videoHTML;
+
+            // Hide input and buttons, show result container
+            formContainer.style.display = 'none';
+            resultContainer.style.display = 'block';
+        }
+
+        function resetPage() {
+            document.getElementById('videoForm').reset();
+            document.getElementById('formContainer').style.display = 'block';
+            document.getElementById('resultContainer').style.display = 'none';
+
+            // Re-enable input and buttons
+            document.getElementById('videoUrl').disabled = false;
+            document.querySelector('.search-button').disabled = false;
+            document.querySelector('.back-button').disabled = false;
+        }
+
+        function extractVideoId(url) {
+            const match = url.match(/(?:v=)([\w-]+)/);
+            return match ? match[1] : '';
+        }
+
+        function formatDuration(totalSeconds) {
+            if (!totalSeconds || isNaN(totalSeconds)) return 'Unknown';
+
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
+    </script>
+</body>
+</html>

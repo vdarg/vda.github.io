@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Query on Bitview</title>
+    <style>
+        body {
+            font-family: Verdana, sans-serif;
+            padding: 20px;
+            background-color: #f3f3f3;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            justify-content: center;
+        }
+        h1 {
+            text-align: center;
+        }
+        .header-image {
+            max-width: 100%;
+            margin-bottom: 20px;
+        }
+        .form-container {
+            width: 100%;
+            max-width: 500px;
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 5px;
+            background-color: #fff;
+            transition: all 0.5s ease;
+        }
+        .form-container label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        .form-container input[type="text"] {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+         .form-container .search-buttons {
+            display: flex;
+            justify-content: space-between;
+        }
+        .form-container button {
+            flex: 1;
+            margin-right: 5px;
+            padding: 10px 0;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .form-container button.search-button {
+            background-color: #f39c12; /* Naranja */
+            color: #fff;
+        }
+        .form-container button.back-button {
+            background-color: #3498db; /* Azul */
+            color: #fff;
+        }
+        .form-container button:hover {
+            opacity: 0.8;
+        }
+        .result-container {
+            display: none;
+            width: 100%;
+            max-width: 500px;
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 5px;
+            background-color: #fff;
+        }
+        .result-container .loading-animation {
+            text-align: center;
+            margin-top: 20px;
+            display: none;
+        }
+        .result-container .loading-animation img {
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        .result-container .profile-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .result-container .profile-header img {
+            max-width: 100px;
+            border: 2px solid #000;
+            margin-right: 20px;
+        }
+        .result-container .profile-header h2 {
+            margin: 0;
+        }
+        .result-container .profile {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .result-container .profile .field {
+            margin-bottom: 10px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .result-container .profile .field strong {
+            display: inline-block;
+            width: 140px;
+            text-align: left;
+            margin-right: 10px;
+        }
+        .result-container .profile .divider {
+            width: 100%;
+            border-bottom: 1px dashed #ccc;
+            margin: 10px 0;
+        }
+        .bottom-button {
+            margin-top: 20px;
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+        }
+        .bottom-button button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            background-color: #3498db;
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .bottom-button button:hover {
+            background-color: #2980b9;
+        }
+        .credit {
+            margin-top: 20px;
+            font-family: 'MS Gothic', sans-serif;
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .error-message {
+            color: red;
+            margin-top: 10px;
+        }
+
+.ms-gothic-text {
+            margin-top: 10px;
+            font-family: 'MS Gothic', sans-serif;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .form-container, .result-container, .bottom-button {
+                max-width: 100%;
+            }
+            .result-container .profile .field strong {
+                width: 120px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <img class="header-image" src="https://dev.bitview.net/bitview.png" alt="Header Image">
+
+    <h1>User Query on Bitview</h1>
+
+    <div class="form-container" id="formContainer">
+        <form id="userForm" onsubmit="getUserData(event)">
+            <label for="username">Enter Username:</label>
+            <input type="text" id="username" required>
+             <div class="search-buttons">
+                <button type="submit" class="search-button">Search</button>
+                <button type="button" class="back-button" onclick="window.location.href = 'index.html';">Back</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="result-container" id="resultContainer">
+        <div class="loading-animation" id="loadingAnimation">
+            <img src="https://cdnjs.cloudflare.com/ajax/libs/galleriffic/2.0.1/css/loader.gif" alt="Loading...">
+        </div>
+        <div class="profile-header" id="profileHeader">
+            <img id="profileImage" src="" alt="Avatar">
+            <h2 id="profileUsername"></h2>
+        </div>
+        <div class="profile" id="profileData"></div>
+        <div class="bottom-button">
+            <button onclick="resetPage()">Back</button>
+<div class="ms-gothic-text">
+                The data indicated as "Unknown" is because the Official BitView API does not provide it
+            </div>
+        </div>
+    </div>
+
+    <div class="credit">
+        Made by <a href="https://bitview.net/user/vda" target="_blank">vda</a> - Buenos Aires, Argentina - 2024 - Not affiliated with BitView/Bittoco
+    </div>
+
+    <script>
+        function getUserData(event) {
+            event.preventDefault();
+            const username = document.getElementById('username').value;
+            const apiUrl = `https://www.bitview.net/api.php?ty=user&ta=${username}&api_key=I1aW2WyNsErdELqFAugoTTTCchcqp618`;
+
+            document.getElementById('loadingAnimation').style.display = 'block';
+
+            // Disable input and button
+            document.getElementById('username').disabled = true;
+            document.querySelector('button[type="submit"]').disabled = true;
+
+            fetch(apiUrl)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.username === undefined) {
+                        throw new Error('User not found');
+                    }
+                    displayUserData(data);
+                    document.getElementById('loadingAnimation').style.display = 'none';
+                })
+                .catch(error => {
+                    console.error('Error retrieving data:', error);
+                    const resultContainer = document.getElementById('resultContainer');
+                    resultContainer.innerHTML = `<p class="error-message">${error.message}. Please reload the page to try again.</p>`;
+                    resultContainer.style.display = 'block';
+                    document.getElementById('loadingAnimation').style.display = 'none';
+                });
+        }
+
+        function displayUserData(data) {
+            const formContainer = document.getElementById('formContainer');
+            const resultContainer = document.getElementById('resultContainer');
+            const profileHeaderContainer = document.getElementById('profileHeader');
+            const profileDataContainer = document.getElementById('profileData');
+            const profileImage = document.getElementById('profileImage');
+            const profileUsername = document.getElementById('profileUsername');
+            const username = data.username;
+            const registered = data.registered;
+            const lastLogin = data.last_login;
+            const videosWatched = data.videos_watched;
+            const channelViews = data.channel_views;
+            const videos = data.videos;
+            const subscribers = data.subscribers;
+            const subscriptions = data.subscriptions;
+            const friends = data.friends;
+            const title = data.title;
+            const description = data.description;
+            const country = data.country;
+            const avatar = `https://www.bitview.net${data.avatar}`;
+            const channelComments = data.channel_comments;
+            const isModerator = data.is_moderator ? 'Yes' : 'No';
+
+            profileImage.src = avatar;
+            profileImage.alt = `Avatar of ${username}`;
+            profileUsername.textContent = username;
+
+            const profileHTML = `
+                <div class="field"><strong>Name:</strong> ${title}</div>
+                <div class="divider"></div>
+                <div class="field"><strong>Registered:</strong> ${registered}</div>
+                <div class="divider"></div>
+                <div class="field"><strong>Last Login:</strong> ${lastLogin}</div>
+                <div class="divider"></div>
+                <div class="field"><strong>Videos Watched:</strong> ${videosWatched}</div>
+                <div class="divider"></div>
+                <div class="field"><strong>Channel Views:</strong> ${channelViews}</div>
+                <div class="divider"></div>
+                <div class="field"><strong>Videos Uploaded:</strong> ${videos}</div>
+                <div class="divider"></div>
+                <div class="field"><strong>Channel Comments:</strong> ${channelComments}</div>
+                <div class="divider"></div>
+                <div class="field"><strong>Subscribers:</strong> ${subscribers}</div>
+                <div class="divider"></div>
+                <div class="field"><strong>Subscriptions:</strong> ${subscriptions}</div>
+                <div class="divider"></div>
+                <div class="field"><strong>Friends:</strong> ${friends}</div>
+                <div class="divider"></div>
+                <div class="field"><strong>Description:</strong> ${description}</div>
+                <div class="divider"></div>
+                <div class="field"><strong>Country:</strong> ${country}</div>
+                <div class="divider"></div>
+                <div class="field"><strong>Is Moderator?:</strong> ${isModerator}</div>
+            `;
+
+            profileDataContainer.innerHTML = profileHTML;
+
+            // Hide form container and show result container
+            formContainer.style.display = 'none';
+            resultContainer.style.display = 'block';
+        }
+
+        function resetPage() {
+            document.getElementById('userForm').reset();
+            const formContainer = document.getElementById('formContainer');
+            const resultContainer = document.getElementById('resultContainer');
+
+            // Reset form and display form container
+            formContainer.style.display = 'block';
+            resultContainer.style.display = 'none';
+
+            // Re-enable input and button
+            document.getElementById('username').disabled = false;
+            document.querySelector('button[type="submit"]').disabled = false;
+        }
+    </script>
+</body>
+</html>
